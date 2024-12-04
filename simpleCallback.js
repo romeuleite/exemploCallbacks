@@ -1,3 +1,5 @@
+//Exemplo mais simples que eu pensei com callback
+
 function funcao1() {
     console.log("Função 1 chamada");
     funcao2(function () {
