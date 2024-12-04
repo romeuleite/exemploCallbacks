@@ -8,7 +8,7 @@ async function countAirports(req, res) {
     const callbackQueue = 'callback_queue';
     await channel.assertQueue(callbackQueue, { durable: false });
 
-    /* Cama a função countItems passando os parametros
+    /* Chama a função countItems passando os parametros
     countItems(dbName, callback) atraves do rabbit */
     const conteudoMsg = {
         dbName: "DBNAME",
