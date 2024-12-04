@@ -25,8 +25,6 @@ async function countAirports(req, res) {
         const error = params.error
         const count = params.count
 
-        console.log(`Callback da Função 2 executado`);
-
         //Executa a lógica do callback usando o res que é passado como parametro
         if (error) {
             res.send("-1");
