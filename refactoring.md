@@ -50,7 +50,7 @@ O uso de callbacks, embora eficiente em sistemas pequenos, pode gerar um acoplam
 ```javascript
 import amqp from 'amqplib';
 
-export async function callbackFunc() {
+export async function callbackFunc(number) {
 
     const connection = await amqp.connect('amqp://localhost');
     const channel = await connection.createChannel();
