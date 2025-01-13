@@ -232,4 +232,151 @@ square()
 
 - É possível utilizar a mesma fila para diferentes funções, porém verificações adicionais são necessárias para garatir a integridade dos dados, pode se utilizar por exemplo uma variável de controle `funcName: "nome_funcao"` dentro do objeto  que contém os parâmetros
 
+```javascript
+import amqp from 'amqplib';
 
+export async function callbackFunc(number) {
+
+    const connection = await amqp.connect('amqp://localhost');
+    const channel = await connection.createChannel();
+    
+    const exchange = 'direct_exchange';
+    const queueResult = await channel.assertQueue('', { exclusive: true });
+    await channel.assertExchange(exchange, 'direct', { durable: false });
+    await channel.bindQueue(queueResult.queue, exchange, 'callback');
+
+    const msgContent = {
+        number: number
+    }
+
+    channel.publish(exchange, 'square', Buffer.from(JSON.stringify(msgContent)));
+
+    channel.consume(queueResult.queue, async (msg) => {
+        const params = JSON.parse(msg.content.toString());
+        const n = params.result
+
+        console.log(`O quadrado de ${number} é ${n}`);
+
+    }, { noAck: true });
+
+}
+
+const numero = 9;
+callbackFunc(numero);
+```
+
+```javascript
+import amqp from 'amqplib';
+
+export async function square() {
+
+    const connection = await amqp.connect('amqp://localhost');
+    const channel = await connection.createChannel();
+
+    const exchange = 'direct_exchange';
+    const queueResult = await channel.assertQueue('', { exclusive: true });
+    await channel.assertExchange(exchange, 'direct', { durable: false });
+    await channel.bindQueue(queueResult.queue, exchange, 'square');
+
+    channel.consume(queueResult.queue, async (msg) => {
+        const params = JSON.parse(msg.content.toString());
+        const number = params.number
+        const callbackQueueName = params.callbackQueueName
+
+        const result = number * number
+
+        const msgContent = {
+            result: result
+        }
+
+        channel.publish(exchange, 'callback', Buffer.from(JSON.stringify(msgContent)));
+
+    }, { noAck: true });
+
+}
+
+square();
+```
+
+```javascript
+import amqp from 'amqplib';
+
+export async function callbackFunc1() {
+
+    const connection = await amqp.connect('amqp://localhost');
+    const channel = await connection.createChannel();
+    
+    const exchange = 'callback_exchange';
+    const queueResult = await channel.assertQueue('', { exclusive: true });
+    await channel.assertExchange(exchange, 'fanout', { durable: false });
+    await channel.bindQueue(queueResult.queue, exchange, '');
+
+    channel.consume(queueResult.queue, async (msg) => {
+        const params = JSON.parse(msg.content.toString());
+        const number = params.number
+        const result = params.result
+
+        console.log(`O quadrado de ${number} é ${result}`);
+
+    }, { noAck: true });
+
+}
+
+callbackFunc1();
+```
+
+```javascript
+import amqp from 'amqplib';
+
+export async function callbackFunc2() {
+
+    const connection = await amqp.connect('amqp://localhost');
+    const channel = await connection.createChannel();
+    
+    const exchange = 'callback_exchange';
+    const queueResult = await channel.assertQueue('', { exclusive: true });
+    await channel.assertExchange(exchange, 'fanout', { durable: false });
+    await channel.bindQueue(queueResult.queue, exchange, '');
+
+    channel.consume(queueResult.queue, async (msg) => {
+        const params = JSON.parse(msg.content.toString());
+        const number = params.number
+        const result = params.result
+
+        console.log(`O resultado(${result}) + numero original(${number}) = ${result + number}`);
+
+    }, { noAck: true });
+
+}
+
+callbackFunc2();
+```
+
+```javascript
+import amqp from 'amqplib';
+
+export async function square(number) {
+
+    const connection = await amqp.connect('amqp://localhost');
+    const channel = await connection.createChannel();
+
+    const exchange = 'square_exchange';
+    const queueResult = await channel.assertQueue('', { exclusive: true });
+    await channel.assertExchange(exchange, 'fanout', { durable: false });
+    await channel.bindQueue(queueResult.queue, exchange, '');
+
+    const result = number * number
+
+    const msgContent = {
+        number: number,
+        result: result
+    }
+
+    channel.publish('callback_exchange', '', Buffer.from(JSON.stringify(msgContent)));
+
+
+}
+
+const numero = 7;
+square(numero);
+```
