@@ -1,4 +1,4 @@
-# Refatoração de Callbacks para Funções Distribuídas
+<a id="title"># Refatoração de Callbacks para Funções Distribuídas</a>
 
 Em JavaScript, callbacks são funções passadas como argumentos para outras funções
 
@@ -47,7 +47,7 @@ O uso de callbacks, embora eficiente em sistemas pequenos, pode gerar um acoplam
 
 ## Como Refatorar
 
-![image](https://github.com/user-attachments/assets/b6a32618-350a-4f65-b88a-8ec818eccaa1)
+![sistema dois nos](nodes_diagram.png)
 
 1. No (Node 1) da função de callback conectar-se ao **`RabbitMQ`** e criar um canal
 
@@ -232,6 +232,23 @@ square()
 
 - É possível utilizar a mesma fila para diferentes funções, porém verificações adicionais são necessárias para garatir a integridade dos dados, pode se utilizar por exemplo uma variável de controle `funcName: "nome_funcao"` dentro do objeto  que contém os parâmetros
 
+---
+
+# Utilizando Exchanges
+
+É possível utilizar também exchanges para moldar o comportamento dos nós. A seguir são utilizadas como exemplo as exchanges do RabbitMQ(direct, topic, fanout) manipuladas através dos seguintes métodos.
+
+```javascript
+publish(exchange, routingKey, content)
+
+consume(queue, function(msg) {...})
+```
+
+## Direct Exchange
+
+Direct exchange entrega mensagens para filas com base na chave de roteamento da mensagem sendo ideal para o roteamento unicast de mensagens. Seguindo o [exemplo inicial](#title) o código poderia ser refatorado da seguinte maneira
+
+### Node 1
 ```javascript
 import amqp from 'amqplib';
 
@@ -261,10 +278,11 @@ export async function callbackFunc(number) {
 
 }
 
-const numero = 9;
+const numero = 3;
 callbackFunc(numero);
 ```
 
+### Node 2
 ```javascript
 import amqp from 'amqplib';
 
@@ -298,6 +316,58 @@ export async function square() {
 square();
 ```
 
+## Fanout Exchange
+
+Fanout Exchange roteia mensagens para todas as filas que estão vinculadas a ela, e a chave de roteamento é ignorada. Se N filas estiverem vinculadas a uma exchange fanout, quando uma nova mensagem for publicada nessa exchange, uma cópia da mensagem será entregue a todas as N filas. Exchanges fanout são ideais para o roteamento de mensagens no modo broadcast. No exemplo a seguir utilizamos dois callbacks que estarão vinculados na mesma exchange através do modelo fanout.
+
+### Broadcast Example 
+```javascript
+function square(number, callback1, callback2) {
+    const result = number * number
+    callback1(result);
+    callback2(result);
+}
+
+const numero = 3;
+square(numero, function(n) {
+    console.log(`O quadrado de ${numero} é ${n}`);
+}, function(n) {
+    console.log(`O resultado(${n}) + numero original(${numero}) = ${n + number}`);
+});
+```
+
+
+### Square
+```javascript
+import amqp from 'amqplib';
+
+export async function square(number) {
+
+    const connection = await amqp.connect('amqp://localhost');
+    const channel = await connection.createChannel();
+
+    const exchange = 'square_exchange';
+    const queueResult = await channel.assertQueue('', { exclusive: true });
+    await channel.assertExchange(exchange, 'fanout', { durable: false });
+    await channel.bindQueue(queueResult.queue, exchange, '');
+
+    const result = number * number
+
+    const msgContent = {
+        number: number,
+        result: result
+    }
+
+    channel.publish('callback_exchange', '', Buffer.from(JSON.stringify(msgContent)));
+
+
+}
+
+const numero = 3;
+square(numero);
+```
+
+### Callback1
 ```javascript
 import amqp from 'amqplib';
 
@@ -325,6 +395,7 @@ export async function callbackFunc1() {
 callbackFunc1();
 ```
 
+### Callback2
 ```javascript
 import amqp from 'amqplib';
 
@@ -350,33 +421,4 @@ export async function callbackFunc2() {
 }
 
 callbackFunc2();
-```
-
-```javascript
-import amqp from 'amqplib';
-
-export async function square(number) {
-
-    const connection = await amqp.connect('amqp://localhost');
-    const channel = await connection.createChannel();
-
-    const exchange = 'square_exchange';
-    const queueResult = await channel.assertQueue('', { exclusive: true });
-    await channel.assertExchange(exchange, 'fanout', { durable: false });
-    await channel.bindQueue(queueResult.queue, exchange, '');
-
-    const result = number * number
-
-    const msgContent = {
-        number: number,
-        result: result
-    }
-
-    channel.publish('callback_exchange', '', Buffer.from(JSON.stringify(msgContent)));
-
-
-}
-
-const numero = 7;
-square(numero);
 ```
