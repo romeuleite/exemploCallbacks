@@ -528,7 +528,7 @@ export async function mainFunction_server() {
         const param2 = params.param2
         const param3 = params.param3
 
-        mainFunction(inputArray, (result) => {
+        mainFunction(param1, param2, param3, (result) => {
             const msgContent = {
                 result: result
             }
