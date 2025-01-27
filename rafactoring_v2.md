@@ -598,9 +598,11 @@ export async function mainFunction_client(param1, param2, param3, callback) {
 --> Inserir a chamada da função com a função de callback <--
 */
 function main() {
-    let param1, param2, param3 = '';
+    let param1, param2, param3;
+    function callback(){
+    };
 
-    mainFunction_client(param1, param2, param3, function () {});
+    mainFunction_client(param1, param2, param3, callback());
 }
 
 main();
