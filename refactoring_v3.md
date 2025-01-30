@@ -199,12 +199,15 @@ mainFunction_server();
 ```javascript
 // client_node.js
 
-function main() {
-    let param1;
-    function callback(){
-    };
+function main(){
+    let param1 = 'param_example';
+    let user = 'Client'
 
-    mainFunction(param1, callback());
+    function callback(result){
+        console.log(`${user} says: result = ` + result)
+    }
+
+    mainFunction_client(param1, callback);
 }
 
 main();
@@ -305,12 +308,15 @@ export async function mainFunction_client(param1, callback) {
 }
 
 
-function main() {
-    let param1;
-    function callback(){
-    };
-    
-    mainFunction(param1, callback());
+function main(){
+    let param1 = 'param_example';
+    let user = 'Client'
+
+    function callback(result){
+        console.log(`${user} says: result = ` + result)
+    }
+
+    mainFunction_client(param1, callback);
 }
 
 main();
