@@ -556,9 +556,9 @@ export async function mainFunction_server() {
         const param2 = params.param2
         const param3 = params.param3
 
-        mainFunction(param1, param2, param3, (result) => {
+        mainFunction(param1, param2, param3, (callback_param) => {
             const msgContent = {
-                result: result
+                callback_param: callback_param
             }
 
             channel.sendToQueue(
@@ -573,7 +573,7 @@ export async function mainFunction_server() {
 --> Inserir a definição da função <--
 */
 function mainFunction(param1, param2, param3, callbackFunction) {
-    callbackFunction();
+    callbackFunction('callback_param');
 }
 
 mainFunction_server();
@@ -606,9 +606,9 @@ export async function mainFunction_client(param1, param2, param3, callback) {
 
     channel.consume(callbackQueue, async (msg) => {
         const params = JSON.parse(msg.content.toString());
-        const result = params.result
+        const callback_param = params.callback_param
 
-        callback(result)
+        callback(callback_param)
 
     }, { noAck: true });
 
@@ -627,10 +627,10 @@ export async function mainFunction_client(param1, param2, param3, callback) {
 */
 function main() {
     let param1, param2, param3;
-    function callback(){
+    function callback(callback_param){
     };
 
-    mainFunction_client(param1, param2, param3, callback());
+    mainFunction_client(param1, param2, param3, callback);
 }
 
 main();
