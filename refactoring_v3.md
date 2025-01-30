@@ -152,6 +152,12 @@ mainFunction_server();
 
 import amqp from 'amqplib';
 
+function mainFunction(param1, callbackFunction) {
+    console.log('Performing operation...');
+
+    callbackFunction(`Operation complete with ${param1}`);
+}
+
 export async function mainFunction_server() {
 
     const connection = await amqp.connect('amqp://localhost');
@@ -162,8 +168,8 @@ export async function mainFunction_server() {
 
     channel.consume(mainFunctionQueue, async (msg) => {
         const params = JSON.parse(msg.content.toString());
-        const callbackQueueName = params.callbackQueueName
-        const param1 = params.param1
+        const callbackQueueName = params.callbackQueueName;
+        const param1 = params.param1;
 
         mainFunction(param1, (result) => {
             const msgContent = {
@@ -174,15 +180,11 @@ export async function mainFunction_server() {
                 callbackQueueName,
                 Buffer.from(JSON.stringify(msgContent))
             );
-        })   
+        })
+        
 
     }, { noAck: true });
 
-}
-
-function mainFunction(param1, callbackFunction) {
-    // Perform some tasks
-    callbackFunction(); // Invoke the callbak
 }
 
 mainFunction_server();
