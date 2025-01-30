@@ -82,8 +82,9 @@ Obs: É possível usar um modelo pré-definido para uma [refatoração rápida](
 // server_node.js
 
 function mainFunction(param1, callbackFunction) {
-    // Perform some tasks
-    callbackFunction(); // Invoke the callbak
+    console.log('Performing operation...');
+
+    callbackFunction(`Operation complete with ${param1}`);
 }
 ```
 
@@ -115,9 +116,9 @@ mainFunction_server();
 
     channel.consume(mainFunctionQueue, async (msg) => {
         const params = JSON.parse(msg.content.toString());
-        const callbackQueueName = params.callbackQueueName
-        const param1 = params.param1
-        
+        const callbackQueueName = params.callbackQueueName;
+        const param1 = params.param1;     
+
     }, { noAck: true });
 
 ...
