@@ -45,6 +45,25 @@ A comunicação via filas desacopla os produtores e consumidores de mensagens, p
 
 ## Como Refatorar
 
+Para o passo a passo a seguir será utilizado o seguinte exemplo:
+
+```javascript
+function mainFunction(param1, callbackFunction) {
+    console.log('Performing operation...');
+
+    callbackFunction(`Operation complete with ${param1}`);
+}
+
+let param1 = 'param_example';
+let user = 'Client'
+
+function callback(result){
+    console.log(`${user} says: result = ` + result)
+}
+
+mainFunction(param1, callback);
+```
+
 Para começar a refatoração é necessário criar dois nós. Um `Client` e um `Server`.
 
 ![alt text](image.png)
