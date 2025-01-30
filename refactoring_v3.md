@@ -16,7 +16,7 @@ Para utilizar essa função, você passaria o argumento e uma função de callba
 let param1;
 function callback(){
 };
-mainFunction(param1, callback());
+mainFunction(param1, callback);
 ```
 
 ## Problema
